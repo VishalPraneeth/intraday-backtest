@@ -1,0 +1,110 @@
+BACKTEST COMMANDS - all_setups.py (Upstox 5m, ~200 sessions)
+=============================================================
+
+0) ONE-TIME / DAILY: Upstox access token
+----------------------------------------
+Generate a fresh access token at https://account.upstox.com/developer/apps
+(token expires ~03:30 IST the next day), then choose ONE of:
+
+  write it to the token file           :  echo YOUR_TOKEN > .upstox_token
+  Windows CMD                          :  set UPSTOX_ACCESS_TOKEN=YOUR_TOKEN
+  PowerShell                           :  $env:UPSTOX_ACCESS_TOKEN="YOUR_TOKEN"
+  Git Bash / MINGW                     :  export UPSTOX_ACCESS_TOKEN=YOUR_TOKEN
+
+The loader reads UPSTOX_ACCESS_TOKEN first, then .upstox_token.
+
+
+1) VALIDATE THE DATA SOURCE (no backtest, prints coverage report)
+-----------------------------------------------------------------
+  python load_data_new.py --symbol SBIN --provider upstox
+
+  # compare Upstox vs Yahoo on the overlapping ~60-day window
+  python load_data_new.py --symbol SBIN --provider upstox --cross-check
+
+
+2) SINGLE STOCK - RECOMMENDED FIRST RUN
+---------------------------------------
+  python all_setups.py --symbols SBIN --out backtest_upstox
+
+
+3) SINGLE STOCK WITH TUNED ATR TRAIL
+------------------------------------
+  python all_setups.py --symbols SBIN --trail-atr 2.0 --trail-activate-r 0.5 --out backtest_upstox
+
+
+4) ONLY ONE SETUP (S1 momentum pullback / S2 opening flag / S3 sandwich)
+------------------------------------------------------------------------
+  python all_setups.py --symbols SBIN --session-sheets S1 --out backtest_upstox
+
+
+5) ALL 9 STOCKS (default STOCKS list)
+-------------------------------------
+  python all_setups.py --out backtest_upstox
+
+
+6) EXPLICIT MULTI-SYMBOL LIST
+-----------------------------
+  python all_setups.py --symbols SBIN ICICIBANK TATASTEEL HINDALCO --out backtest_upstox
+
+
+7) STATIC MODEL ONLY (skip the ATR trailing simulation)
+-------------------------------------------------------
+  python all_setups.py --symbols SBIN --no-trail --out backtest_upstox
+
+
+8) OFFLINE SMOKE TEST (synthetic data, no network / no token)
+-------------------------------------------------------------
+  python all_setups.py --demo --symbols SBIN --out _demo_out
+
+
+9) OPTIONAL: SEED A JSON DATASET FROM UPSTOX (archive / offline reruns)
+-----------------------------------------------------------------------
+  python load_data_new.py --export-json data_json --all-stocks --provider upstox --days 300
+
+
+10) INSTRUMENT MAP UTILITIES
+----------------------------
+  python load_data_new.py --check-instruments --symbol SBIN
+  python load_data_new.py --search KALYAN
+  python load_data_new.py --refresh-instruments
+  python load_data_new.py --dump-instruments symbols.csv
+
+
+OUTPUT FILES
+------------
+  backtest_upstox/<SYMBOL>_backtest.xlsx
+      Summary           per-setup / per-model stats, with the INFERENCE
+                        table written below the stats block
+      Trades_All        every simulated trade (static + ATR trail)
+      Daily_Indicators  daily OHLC + TR, ATR14, SMA20, RSI14, EMA12/26,
+                        MACD (+signal/hist), Bollinger Bands, ATR%,
+                        volatility bucket, prev_close, gap_%
+
+  backtest_upstox/_portfolio_summary.xlsx
+      All_Stocks        pooled stats across symbols
+      By_Stock          per-symbol roll-up
+
+
+KEY SWITCHES
+------------
+  --symbols              NSE symbols to run (default: 9 stocks in STOCKS)
+  --out                  output folder (default: backtest_output)
+  --session-sheets       ALL | S1 | S2 | S3
+  --trail-atr            ATR(14) trailing distance multiplier (default 1.5)
+  --trail-activate-r     start trailing after this much favourable R (default 0.0)
+  --no-trail             disable the ATR trailing model
+  --demo                 synthetic offline data
+  --help                 full argument list
+
+
+MODEL DEFAULTS
+--------------
+  Entry                  signal-bar close, 0.02% slippage per side
+  Static exit            fixed SL + rr_target (2R), move to BE at +1R
+  ATR trail exit         stop = favourable extreme -/+ trail_atr * ATR(14),
+                         ratcheted only, applied from the next bar,
+                         fixed target disabled (ride until trail / EOD)
+  EOD exit               15:15
+  Max trades / day       2 per setup
+  S1 pivots              P, R1-R5, S1-S5 from the previous session
+  Global filters         volume SMA20, momentum (VWAP/EMA/RSI), ATR% band, gap cap
