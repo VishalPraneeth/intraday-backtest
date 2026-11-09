@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "provider": "upstox",
+  "interval": "5m",
+  "timezone": "Asia/Kolkata",
+  "generated_at": "2026-11-09T07:39:18+00:00",
+  "files": {
+    "BHARTIARTL": {
+      "file": "BHARTIARTL_5m.json",
+      "rows": 15164,
+      "sessions": 203,
+      "start": "2026-01-13T09:15:00+05:30",
+      "end": "2026-11-08T15:25:00+05:30",
+      "bytes": 1005064
+    }
+  }
+}
