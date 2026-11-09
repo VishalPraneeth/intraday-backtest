@@ -21,6 +21,9 @@ The loader reads UPSTOX_ACCESS_TOKEN first, then .upstox_token.
   # compare Upstox vs Yahoo on the overlapping ~60-day window
   python load_data_new.py --symbol SBIN --provider upstox --cross-check
 
+  # When you want the json of data
+  python load_data_new.py --symbol SBIN --provider upstox --export-json data_json
+
 
 2) SINGLE STOCK - RECOMMENDED FIRST RUN
 ---------------------------------------
